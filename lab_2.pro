@@ -9,6 +9,7 @@ CONFIG -= app_bundle
 
 SOURCES += \
         FileEventObserver.cpp \
+        SourceFileEvent.cpp \
         main.cpp
 
 # Default rules for deployment.
@@ -17,4 +18,5 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 HEADERS += \
-    FileEventObserver.h
+    FileEventObserver.h \
+    SourceFileEvent.h
