@@ -14,7 +14,8 @@ public:
     void addObserver(FileEventObserver* observer);
     //Удалить наблюдателя
     void removeObserver(FileEventObserver* observer);
-
+    //Отслеживание состояния файла
+    void task();
 
 
 private:
@@ -24,4 +25,5 @@ private:
     QFileInfo*                          _fileInfo;
 
 };
+
 
