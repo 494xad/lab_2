@@ -1,29 +1,32 @@
+#pragma once
+
 #include <vector>
 #include "FileEventObserver.h"
 #include "qfileinfo.h"
 
 class SourceFileEvent
 {
-
 public:
-    //Конструктор
     SourceFileEvent();
-    //Деструктор
+
     ~SourceFileEvent();
-    //Добавить наблюдателя
+
     void addObserver(FileEventObserver* observer);
-    //Удалить наблюдателя
+
     void removeObserver(FileEventObserver* observer);
-    //Отслеживание состояния файла
+
     void task();
 
-
 private:
-    //Вектор указателей на наблюдателей
+
+    /// Получить информацию о состоянии файла
+    /// fileSize - ссылка для записи размера файла при его наличии
+    FileEventObserver::FileState getFileState(qint64 &fileSize);
+
     std::vector<FileEventObserver*>     _observers;
-    //Указатель на объект для получения информации о файле
-    QFileInfo*                          _fileInfo;
 
 };
+
+
 
 

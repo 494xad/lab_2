@@ -1,26 +1,24 @@
 #include "SourceFileEvent.h"
-#include <thread>
-#include <chrono>
-#include <iostream>
+#include <QDateTime>
+#include <QThread>
 
-    //Конструктор
+
 SourceFileEvent::SourceFileEvent()
 {
-    _fileInfo = new QFileInfo("C:\\Users\\Ксения\\Documents\\build-lab_2-Desktop_Qt_6_2_3_MinGW_64_bit-Debug\\debug\\observiable.txt");
+
 }
-     //Деструктор
+
 SourceFileEvent::~SourceFileEvent()
 {
     _observers.clear();
-    delete _fileInfo;
 }
 
-//Добавить наблюдателя
+
 void SourceFileEvent::addObserver(FileEventObserver* observer)
 {
     _observers.push_back(observer);
 }
-//Удалить наблюдателя
+
 void SourceFileEvent::removeObserver(FileEventObserver* observer)
 {
     unsigned int obsCount = _observers.size();
@@ -33,21 +31,10 @@ void SourceFileEvent::removeObserver(FileEventObserver* observer)
 
 void SourceFileEvent::task()
 {
+    qint64 fileSize = 0;
+    FileEventObserver::FileState fileState = getFileState(fileSize);
 
-    unsigned int fileSize = 0;
-    FileEventObserver::FileState fileState;
-
-    if(_fileInfo->exists()) {
-        if (_fileInfo->birthTime() != _fileInfo->lastModified()) {
-            fileState = FileEventObserver::FileState::FILE_CHANGED;
-        } else {
-            fileState = FileEventObserver::FileState::FILE_EXSIST;
-        }
-        fileSize = _fileInfo->size();
-    } else {
-        fileState = FileEventObserver::FileState::FILE_NOT_EXSIST;
-    }
-
+    // Оповещение наблюдателей о состоянии файла
     for(auto obs: _observers) {
         obs->notifyObserver(fileState, fileSize);
     }
@@ -55,20 +42,11 @@ void SourceFileEvent::task()
     FileEventObserver::FileState newFileState = fileState;
     while (true) {
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        QThread::msleep(100);
 
-        if(_fileInfo->exists()) {
-            if (_fileInfo->birthTime() != _fileInfo->lastModified()) {
-                newFileState = FileEventObserver::FileState::FILE_CHANGED;
-            } else {
-                newFileState = FileEventObserver::FileState::FILE_EXSIST;
-            }
-            fileSize = _fileInfo->size();
-        } else {
-            newFileState = FileEventObserver::FileState::FILE_NOT_EXSIST;
-        }
+        newFileState = getFileState(fileSize);
 
-        if(newFileState != fileState) {
+        if(newFileState != fileState) { // Если состояние файла поменялось, производится оповещение наблюдателей
             for(auto obs: _observers) {
                 obs->notifyObserver(newFileState, fileSize);
             }
@@ -76,4 +54,25 @@ void SourceFileEvent::task()
         }
     }
 
+}
+
+/// Получить информацию о состоянии файла
+/// fileSize - ссылка для записи размера файла при его наличии
+FileEventObserver::FileState SourceFileEvent::getFileState(qint64 &fileSize)
+{
+    FileEventObserver::FileState fileState;
+    //Создание объекта для чтения инфоррмации о файле
+    QFileInfo fileInfo("observiable.txt");
+
+    if(fileInfo.exists()) { //Если файл существует
+        if (fileInfo.birthTime() != fileInfo.lastModified()) { // Если файл был модифицирован
+            fileState = FileEventObserver::FileState::FILE_CHANGED;
+        } else {
+            fileState = FileEventObserver::FileState::FILE_EXSIST;
+        }
+        fileSize = fileInfo.size();
+    } else {
+        fileState = FileEventObserver::FileState::FILE_NOT_EXSIST;
+    }
+    return fileState;
 }
